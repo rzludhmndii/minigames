@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎮 Mini Games Browser</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;                                     
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 3s ease infinite;
+            background-size: 200% auto;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+        }
+
+        .game-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .game-btn.hangman-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .game-btn.snake-btn {
+            background: linear-gradient(135deg, #48dbfb, #0abde3);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(72, 219, 251, 0.4);
+        }
+
+        .game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .game-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+
+        .game-panel {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .game-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hangman Styles */
+        .hangman-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hangman-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-display {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: #feca57;
+        }
+
+        .lives-display {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: #ff6b6b;
+        }
+
+        .hint-box {
+            background: rgba(255, 202, 87, 0.2);
+            border: 2px solid #feca57;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .hint-label {
+            font-family: 'Fredoka One', cursive;
+            color: #feca57;
+            margin-bottom: 5px;
+        }
+
+        .hint-text {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .word-display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            min-height: 60px;
+        }
+
+        .letter-box {
+            width: 50px;
+            height: 60px;
+            border: 3px solid #48dbfb;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: #fff;
+            background: rgba(72, 219, 251, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .letter-box.revealed {
+            background: rgba(72, 219, 251, 0.3);
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .key-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: #fff;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .key-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(108, 92, 231, 0.6);
+        }
+
+        .key-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: scale(0.9);
+        }
+
+        .key-btn.correct {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+        }
+
+        .key-btn.wrong {
+            background: linear-gradient(135deg, #d63031, #ff7675);
+        }
+
+        .next-btn {
+            display: block;
+            margin: 20px auto 0;
+            padding: 15px 40px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .next-btn.show {
+            display: block;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .next-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.5);
+        }
+
+        .game-message {
+            text-align: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            min-height: 40px;
+        }
+
+        .game-message.win {
+            color: #55efc4;
+        }
+
+        .game-message.lose {
+            color: #ff7675;
+        }
+
+        /* Snake Styles */
+        .snake-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .snake-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .snake-score {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: #48dbfb;
+        }
+
+        .highscore {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            color: #feca57;
+        }
+
+        #gameCanvas {
+            border: 3px solid #48dbfb;
+            border-radius: 15px;
+            background: #0a0a1a;
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .mobile-controls {
+            display: none;
+            margin-top: 20px;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: #fff;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .snake-start-btn {
+            padding: 15px 40px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #48dbfb, #0abde3);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .snake-start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(72, 219, 251, 0.5);
+        }
+
+        .snake-message {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.3rem;
+            color: #ff7675;
+            margin-top: 15px;
+            min-height: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+
+            .game-switcher {
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .game-btn {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+
+            .hangman-container, .snake-container {
+                padding: 12px;
+                border-radius: 15px;
+            }
+
+            .hangman-header, .snake-header {
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .score-display, .lives-display, .snake-score, .highscore {
+                font-size: 1rem;
+            }
+
+            .hint-box {
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+
+            .hint-text {
+                font-size: 0.95rem;
+            }
+
+            .word-display {
+                gap: 6px;
+                margin-bottom: 20px;
+            }
+
+            .letter-box {
+                width: 35px;
+                height: 45px;
+                font-size: 1.3rem;
+                border-radius: 8px;
+            }
+
+            .keyboard {
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+
+            .key-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+                border-radius: 8px;
+            }
+
+            .next-btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+
+            .game-message {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+            }
+
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+                max-width: 350px;
+            }
+
+            .mobile-controls {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-top: 15px;
+            }
+
+            .control-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 1.3rem;
+            }
+
+            .control-row {
+                gap: 8px;
+            }
+
+            .snake-start-btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+                margin-top: 15px;
+            }
+
+            .snake-message {
+                font-size: 1.1rem;
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .game-btn {
+                font-size: 0.75rem;
+                padding: 7px 14px;
+            }
+
+            .letter-box {
+                width: 28px;
+                height: 38px;
+                font-size: 1.1rem;
+            }
+
+            .key-btn {
+                width: 26px;
+                height: 26px;
+                font-size: 0.75rem;
+            }
+
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            #gameCanvas {
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Mini Games Browser</h1>
+        
+        <div class="game-switcher">
+            <button class="game-btn hangman-btn active" onclick="switchGame('hangman')">🎯 Tebak Kata</button>
+            <button class="game-btn snake-btn" onclick="switchGame('snake')">🐍 Snake Game</button>
+        </div>
+
+        <!-- Hangman Game -->
+        <div id="hangman-panel" class="game-panel active">
+            <div class="hangman-container">
+                <div class="hangman-header">
+                    <div class="score-display">Skor: <span id="hangman-score">0</span></div>
+                    <div class="lives-display">Nyawa: <span id="hangman-lives">❤️❤️❤️❤️❤️</span></div>
+                </div>
+
+                <div class="hint-box">
+                    <div class="hint-label">💡 Petunjuk</div>
+                    <div class="hint-text" id="hint-text">-</div>
+                </div>
+
+                <div class="game-message" id="game-message"></div>
+
+                <div class="word-display" id="word-display"></div>
+
+                <div class="keyboard" id="keyboard"></div>
+
+                <button class="next-btn" id="next-btn" onclick="nextWord()">Soal Berikutnya ➡️</button>
+            </div>
+        </div>
+
+        <!-- Snake Game -->
+        <div id="snake-panel" class="game-panel">
+            <div class="snake-container">
+                <div class="snake-header">
+                    <div class="snake-score">Skor: <span id="snake-score">0</span></div>
+                    <div class="highscore">🏆 Highscore: <span id="highscore">0</span></div>
+                </div>
+
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+                <div class="snake-message" id="snake-message"></div>
+
+                <button class="snake-start-btn" id="snake-start-btn" onclick="startSnake()">▶️ Mulai Game</button>
+
+                <div class="mobile-controls">
+                    <div class="control-row">
+                        <button class="control-btn" onclick="changeDirection('up')">⬆️</button>
+                    </div>
+                    <div class="control-row">
+                        <button class="control-btn" onclick="changeDirection('left')">⬅️</button>
+                        <button class="control-btn" onclick="changeDirection('down')">⬇️</button>
+                        <button class="control-btn" onclick="changeDirection('right')">➡️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME SWITCHER ====================
+        function switchGame(game) {
+            try {
+                document.querySelectorAll('.game-panel').forEach(panel => panel.classList.remove('active'));
+                document.querySelectorAll('.game-btn').forEach(btn => btn.classList.remove('active'));
+
+                if (game === 'hangman') {
+                    document.getElementById('hangman-panel').classList.add('active');
+                    document.querySelector('.hangman-btn').classList.add('active');
+                } else {
+                    document.getElementById('snake-panel').classList.add('active');
+                    document.querySelector('.snake-btn').classList.add('active');
+                    // Ensure canvas is properly sized when switching to snake game
+                    setTimeout(resizeCanvas, 50);
+                }
+            } catch (error) {
+                console.error('Error switching game:', error);
+            }
+        }
+
+        // ==================== HANGMAN GAME ====================
+        const words = [
+            { word: 'KOMPUTER', hint: 'Alat elektronik untuk mengolah data' },
+            { word: 'ELEFANT', hint: 'Hewan darat terbesar di dunia' },
+            { word: 'PELANGI', hint: 'Muncul setelah hujan, punya 7 warna' },
+            { word: 'BINTANG', hint: 'Benda langit yang bercahaya di malam hari' },
+            { word: 'GURUN', hint: 'Daerah kering dengan pasir luas' },
+            { word: 'SAMUDRA', hint: 'Lautan terbesar di bumi' },
+            { word: 'KUPU', hint: 'Serangga cantik yang bisa terbang' },
+            { word: 'GUNUNG', hint: 'Bentang alam yang tinggi menjulang' },
+            { word: 'SUNGAI', hint: 'Aliran air yang mengalir ke laut' },
+            { word: 'HUTAN', hint: 'Tempat banyak pohon dan tumbuhan' },
+            { word: 'BULAN', hint: 'Satelit alami bumi yang bersinar malam' },
+            { word: 'MATAHARI', hint: 'Bintang yang memberi cahaya ke bumi' },
+            { word: 'ANGIN', hint: 'Udara yang bergerak dan bisa dirasakan' },
+            { word: 'HUJAN', hint: 'Air yang jatuh dari langit' },
+            { word: 'SALJU', hint: 'Air beku yang jatuh di daerah dingin' },
+            { word: 'BUNGA', hint: 'Bagian tanaman yang indah dan berwarna' },
+            { word: 'BURUNG', hint: 'Hewan bersayap yang bisa terbang' },
+            { word: 'IKAN', hint: 'Hewan air yang bernapas dengan insang' },
+            { word: 'KELINCI', hint: 'Hewan lucu bertelinga panjang' },
+            { word: 'SEMUT', hint: 'Serangga kecil yang hidup berkoloni' },
+            { word: 'API', hint: 'Elemen panas yang bisa membakar' },
+            { word: 'AIR', hint: 'Cairan penting untuk kehidupan' },
+            { word: 'TANAH', hint: 'Tempat tumbuhan tumbuh' },
+            { word: 'LANGIT', hint: 'Ruangan di atas bumi yang biru' },
+            { word: 'AWAN', hint: 'Kumpulan uap air di langit' }
+        ];
+
+        let currentWord = '';
+        let currentHint = '';
+        let guessedLetters = [];
+        let lives = 5;
+        let score = 0;
+        let gameOver = false;
+
+        function initHangman() {
+            try {
+                createKeyboard();
+                loadNewWord();
+            } catch (error) {
+                console.error('Error initializing hangman:', error);
+            }
+        }
+
+        function createKeyboard() {
+            try {
+                const keyboard = document.getElementById('keyboard');
+                if (!keyboard) return;
+                keyboard.innerHTML = '';
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                
+                for (let letter of letters) {
+                    const btn = document.createElement('button');
+                    btn.className = 'key-btn';
+                    btn.textContent = letter;
+                    btn.id = `key-${letter}`;
+                    btn.onclick = () => guessLetter(letter);
+                    keyboard.appendChild(btn);
+                }
+            } catch (error) {
+                console.error('Error creating keyboard:', error);
+            }
+        }
+
+        function loadNewWord() {
+            try {
+                const randomIndex = Math.floor(Math.random() * words.length);
+                currentWord = words[randomIndex].word;
+                currentHint = words[randomIndex].hint;
+                guessedLetters = [];
+                lives = 5;
+                gameOver = false;
+
+                try {
+                    document.getElementById('hint-text').textContent = currentHint;
+                    document.getElementById('hangman-lives').textContent = '❤️'.repeat(lives);
+                    document.getElementById('game-message').textContent = '';
+                    document.getElementById('game-message').className = 'game-message';
+                    document.getElementById('next-btn').classList.remove('show');
+                } catch (error) {
+                    console.error('Error updating hangman display:', error);
+                }
+
+                createKeyboard();
+                updateWordDisplay();
+            } catch (error) {
+                console.error('Error loading new word:', error);
+            }
+        }
+
+        function updateWordDisplay() {
+            try {
+                const display = document.getElementById('word-display');
+                if (!display) return;
+                display.innerHTML = '';
+
+                for (let letter of currentWord) {
+                    const box = document.createElement('div');
+                    box.className = 'letter-box';
+                    
+                    if (guessedLetters.includes(letter)) {
+                        box.textContent = letter;
+                        box.classList.add('revealed');
+                    } else {
+                        box.textContent = '';
+                    }
+                    
+                    display.appendChild(box);
+                }
+            } catch (error) {
+                console.error('Error updating word display:', error);
+            }
+        }
+
+        function guessLetter(letter) {
+            try {
+                if (gameOver || guessedLetters.includes(letter)) return;
+
+                guessedLetters.push(letter);
+                const btn = document.getElementById(`key-${letter}`);
+                if (!btn) return;
+                btn.disabled = true;
+
+                if (currentWord.includes(letter)) {
+                    btn.classList.add('correct');
+                    updateWordDisplay();
+                    checkWin();
+                } else {
+                    btn.classList.add('wrong');
+                    lives--;
+                    try {
+                        document.getElementById('hangman-lives').textContent = '❤️'.repeat(lives) + '🖤'.repeat(5 - lives);
+                    } catch (error) {
+                        console.error('Error updating lives display:', error);
+                    }
+                    checkLose();
+                }
+            } catch (error) {
+                console.error('Error guessing letter:', error);
+            }
+        }
+
+        function checkWin() {
+            try {
+                const allGuessed = currentWord.split('').every(letter => guessedLetters.includes(letter));
+                if (allGuessed) {
+                    gameOver = true;
+                    score += lives * 10;
+                    try {
+                        document.getElementById('hangman-score').textContent = score;
+                    } catch (error) {
+                        console.error('Error updating hangman score:', error);
+                    }
+                    try {
+                        document.getElementById('game-message').textContent = '🎉 Benar! Kamu Hebat!';
+                        document.getElementById('game-message').className = 'game-message win';
+                        document.getElementById('next-btn').classList.add('show');
+                    } catch (error) {
+                        console.error('Error updating game message:', error);
+                    }
+                    disableAllKeys();
+                }
+            } catch (error) {
+                console.error('Error checking win:', error);
+            }
+        }
+
+        function checkLose() {
+            try {
+                if (lives <= 0) {
+                    gameOver = true;
+                    try {
+                        document.getElementById('game-message').textContent = `😢 Game Over! Jawaban: ${currentWord}`;
+                        document.getElementById('game-message').className = 'game-message lose';
+                        document.getElementById('next-btn').classList.add('show');
+                    } catch (error) {
+                        console.error('Error updating game over message:', error);
+                    }
+                    disableAllKeys();
+                    revealWord();
+                }
+            } catch (error) {
+                console.error('Error checking lose:', error);
+            }
+        }
+
+        function revealWord() {
+            try {
+                const display = document.getElementById('word-display');
+                const boxes = display.querySelectorAll('.letter-box');
+                currentWord.split('').forEach((letter, index) => {
+                    if (!guessedLetters.includes(letter) && boxes[index]) {
+                        boxes[index].textContent = letter;
+                        boxes[index].style.borderColor = '#ff7675';
+                        boxes[index].style.background = 'rgba(255, 118, 117, 0.2)';
+                    }
+                });
+            } catch (error) {
+                console.error('Error revealing word:', error);
+            }
+        }
+
+        function disableAllKeys() {
+            try {
+                document.querySelectorAll('.key-btn').forEach(btn => btn.disabled = true);
+            } catch (error) {
+                console.error('Error disabling keys:', error);
+            }
+        }
+
+        function nextWord() {
+            try {
+                loadNewWord();
+            } catch (error) {
+                console.error('Error loading next word:', error);
+            }
+        }
+
+        // Keyboard support for hangman
+        document.addEventListener('keydown', (e) => {
+            try {
+                if (document.getElementById('hangman-panel').classList.contains('active')) {
+                    const letter = e.key.toUpperCase();
+                    if (/^[A-Z]$/.test(letter)) {
+                        guessLetter(letter);
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling keyboard event:', error);
+            }
+        });
+
+        // ==================== SNAKE GAME ====================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gridSize = 20;
+        let tileCount = canvas.width / gridSize;
+
+        // Responsive canvas sizing
+        function resizeCanvas() {
+            try {
+                const container = canvas.parentElement;
+                if (!container) return;
+                const containerWidth = container.clientWidth || 400;
+                const maxWidth = Math.min(containerWidth - 20, 400);
+                canvas.width = maxWidth;
+                canvas.height = maxWidth;
+                tileCount = Math.floor(canvas.width / gridSize);
+                if (tileCount < 5) tileCount = 20;
+                if (snakeGameRunning) drawSnake();
+            } catch (error) {
+                console.error('Error resizing canvas:', error);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            try {
+                resizeCanvas();
+            } catch (error) {
+                console.error('Error handling resize:', error);
+            }
+        });
+        setTimeout(resizeCanvas, 100);
+
+        let snake = [];
+        let food = { x: 0, y: 0 };
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+        let snakeScore = 0;
+        let highscore = localStorage.getItem('snakeHighscore') || 0;
+        let gameLoop = null;
+        let snakeGameRunning = false;
+
+        try {
+            document.getElementById('highscore').textContent = highscore;
+        } catch (error) {
+            console.error('Error setting highscore:', error);
+        }
+
+        function startSnake() {
+            try {
+                if (snakeGameRunning) return;
+
+                // Ensure canvas is properly sized
+                resizeCanvas();
+                
+                snake = [{ x: Math.floor(tileCount / 2), y: Math.floor(tileCount / 2) }];
+                direction = { x: 1, y: 0 };
+                nextDirection = { x: 1, y: 0 };
+                snakeScore = 0;
+                try {
+                    document.getElementById('snake-score').textContent = snakeScore;
+                } catch (error) {
+                    console.error('Error setting snake score:', error);
+                }
+                try {
+                    document.getElementById('snake-message').textContent = '';
+                } catch (error) {
+                    console.error('Error clearing snake message:', error);
+                }
+                try {
+                    document.getElementById('snake-start-btn').textContent = '🔄 Restart Game';
+                } catch (error) {
+                    console.error('Error updating start button:', error);
+                }
+
+                placeFood();
+                snakeGameRunning = true;
+
+                if (gameLoop) clearInterval(gameLoop);
+                gameLoop = setInterval(updateSnake, 100);
+                drawSnake();
+            } catch (error) {
+                console.error('Error starting snake game:', error);
+            }
+        }
+
+        function placeFood() {
+            try {
+                let validPosition = false;
+                let attempts = 0;
+                while (!validPosition && attempts < 100) {
+                    food.x = Math.floor(Math.random() * tileCount);
+                    food.y = Math.floor(Math.random() * tileCount);
+                    validPosition = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+                    attempts++;
+                }
+            } catch (error) {
+                console.error('Error placing food:', error);
+            }
+        }
+
+        function updateSnake() {
+            try {
+                if (!snakeGameRunning || !ctx) return;
+
+                direction = { ...nextDirection };
+
+                const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+                // Check wall collision
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                    endSnakeGame();
+                    return;
+                }
+
+                // Check self collision
+                if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                    endSnakeGame();
+                    return;
+                }
+
+                snake.unshift(head);
+
+                // Check food collision
+                if (head.x === food.x && head.y === food.y) {
+                    snakeScore += 10;
+                    try {
+                        document.getElementById('snake-score').textContent = snakeScore;
+                    } catch (error) {
+                        console.error('Error updating snake score:', error);
+                    }
+                    placeFood();
+                } else {
+                    snake.pop();
+                }
+
+                drawSnake();
+            } catch (error) {
+                console.error('Error updating snake:', error);
+            }
+        }
+
+        function drawSnake() {
+            try {
+                if (!ctx) return;
+                // Clear canvas
+                ctx.fillStyle = '#0a0a1a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw grid (subtle)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+                for (let i = 0; i < tileCount; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * gridSize, 0);
+                    ctx.lineTo(i * gridSize, canvas.height);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(0, i * gridSize);
+                    ctx.lineTo(canvas.width, i * gridSize);
+                    ctx.stroke();
+                }
+
+                // Draw food
+                ctx.fillStyle = '#ff6b6b';
+                ctx.shadowColor = '#ff6b6b';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(
+                    food.x * gridSize + gridSize / 2,
+                    food.y * gridSize + gridSize / 2,
+                    gridSize / 2 - 2,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Draw snake
+                snake.forEach((segment, index) => {
+                    const gradient = ctx.createRadialGradient(
+                        segment.x * gridSize + gridSize / 2,
+                        segment.y * gridSize + gridSize / 2,
+                        0,
+                        segment.x * gridSize + gridSize / 2,
+                        segment.y * gridSize + gridSize / 2,
+                        gridSize / 2
+                    );
+
+                    if (index === 0) {
+                        gradient.addColorStop(0, '#55efc4');
+                        gradient.addColorStop(1, '#00b894');
+                    } else {
+                        gradient.addColorStop(0, '#48dbfb');
+                        gradient.addColorStop(1, '#0abde3');
+                    }
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.roundRect(
+                        segment.x * gridSize + 1,
+                        segment.y * gridSize + 1,
+                        gridSize - 2,
+                        gridSize - 2,
+                        5
+                    );
+                    ctx.fill();
+
+                    // Draw eyes on head
+                    if (index === 0) {
+                        ctx.fillStyle = '#fff';
+                        const eyeSize = 3;
+                        const eyeOffset = 5;
+
+                        if (direction.x === 1) {
+                            ctx.beginPath();
+                            ctx.arc(segment.x * gridSize + gridSize - eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.arc(segment.x * gridSize + gridSize - eyeOffset, segment.y * gridSize + gridSize - eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (direction.x === -1) {
+                            ctx.beginPath();
+                            ctx.arc(segment.x * gridSize + eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.arc(segment.x * gridSize + eyeOffset, segment.y * gridSize + gridSize - eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (direction.y === 1) {
+                            ctx.beginPath();
+                            ctx.arc(segment.x * gridSize + eyeOffset, segment.y * gridSize + gridSize - eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.arc(segment.x * gridSize + gridSize - eyeOffset, segment.y * gridSize + gridSize - eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else {
+                            ctx.beginPath();
+                            ctx.arc(segment.x * gridSize + eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.arc(segment.x * gridSize + gridSize - eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error drawing snake:', error);
+            }
+        }
+
+        function endSnakeGame() {
+            try {
+                snakeGameRunning = false;
+                if (gameLoop) clearInterval(gameLoop);
+                try {
+                    document.getElementById('snake-message').textContent = `💥 Game Over! Skor: ${snakeScore}`;
+                } catch (error) {
+                    console.error('Error setting game over message:', error);
+                }
+
+                if (snakeScore > highscore) {
+                    highscore = snakeScore;
+                    localStorage.setItem('snakeHighscore', highscore);
+                    try {
+                        document.getElementById('highscore').textContent = highscore;
+                    } catch (error) {
+                        console.error('Error updating highscore display:', error);
+                    }
+                    try {
+                        document.getElementById('snake-message').textContent += ' 🏆 New Highscore!';
+                    } catch (error) {
+                        console.error('Error appending highscore message:', error);
+                    }
+                }
+
+                try {
+                    document.getElementById('snake-start-btn').textContent = '▶️ Main Lagi';
+                } catch (error) {
+                    console.error('Error updating start button text:', error);
+                }
+            } catch (error) {
+                console.error('Error ending snake game:', error);
+            }
+        }
+
+        function changeDirection(dir) {
+            try {
+                if (!snakeGameRunning || !ctx) return;
+
+                switch (dir) {
+                    case 'up':
+                        if (direction.y !== 1) nextDirection = { x: 0, y: -1 };
+                        break;
+                    case 'down':
+                        if (direction.y !== -1) nextDirection = { x: 0, y: 1 };
+                        break;
+                    case 'left':
+                        if (direction.x !== 1) nextDirection = { x: -1, y: 0 };
+                        break;
+                    case 'right':
+                        if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
+                        break;
+                }
+            } catch (error) {
+                console.error('Error changing direction:', error);
+            }
+        }
+
+        // Keyboard controls for snake
+        document.addEventListener('keydown', (e) => {
+            try {
+                if (document.getElementById('snake-panel').classList.contains('active')) {
+                    switch (e.key) {
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            changeDirection('up');
+                            break;
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            changeDirection('down');
+                            break;
+                        case 'ArrowLeft':
+                            e.preventDefault();
+                            changeDirection('left');
+                            break;
+                        case 'ArrowRight':
+                            e.preventDefault();
+                            changeDirection('right');
+                            break;
+                        case ' ':
+                            e.preventDefault();
+                            if (!snakeGameRunning) startSnake();
+                            break;
+                        case 'Enter':
+                            e.preventDefault();
+                            if (!snakeGameRunning) startSnake();
+                            break;
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling snake keyboard event:', error);
+            }
+        });
+
+        // Initialize
+        try {
+            initHangman();
+            drawSnake();
+        } catch (error) {
+            console.error('Error initializing games:', error);
+        }
+    </script>
+</body>
+</html>
